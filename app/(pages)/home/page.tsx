@@ -1,4 +1,4 @@
-import ParticleBackground from '../../../components/ParticleBackground';
+import ParticleBackground from '../../components/ParticleBackground';
 
 export default function HomePage() {
   return (
