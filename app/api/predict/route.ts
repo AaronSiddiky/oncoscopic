@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
+// Add logging to check API key
+console.log('=== [API] OpenAI API Key exists:', !!process.env.OPENAI_API_KEY);
+console.log('=== [API] OpenAI API Key length:', process.env.OPENAI_API_KEY?.length);
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
