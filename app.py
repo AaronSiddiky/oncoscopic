@@ -50,8 +50,8 @@ def init_model():
         logger.info(f"Files in current directory: {os.listdir('.')}")
         
         # Get the absolute path to the model files
-        model_path = os.path.join(os.getcwd(), 'skin_lesion_model.h5')
-        le_path = os.path.join(os.getcwd(), 'label_encoder_classes.npy')
+        model_path = os.path.join(os.getcwd(), 'models', 'skin_lesion_model.h5')
+        le_path = os.path.join(os.getcwd(), 'models', 'label_encoder_classes.npy')
         
         logger.info(f"Loading model from: {model_path}")
         logger.info(f"Loading label encoder from: {le_path}")
