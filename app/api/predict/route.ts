@@ -1,6 +1,4 @@
 import { NextResponse } from 'next/server';
-import { spawn } from 'child_process';
-import path from 'path';
 import OpenAI from 'openai';
 
 const openai = new OpenAI({
@@ -23,15 +21,11 @@ export async function POST(request: Request): Promise<Response> {
 
     // Convert the file to a buffer
     const buffer = Buffer.from(await file.arrayBuffer());
-    
-    // Save the file temporarily
-    const tempPath = path.join(process.cwd(), 'temp', `${Date.now()}.jpg`);
-    require('fs').writeFileSync(tempPath, buffer);
+    const base64Image = buffer.toString('base64');
 
-    // Convert image to base64 for OpenAI
-    console.log('=== [API] LLM validation running for image:', tempPath);
+    // Validate image using OpenAI
+    console.log('=== [API] LLM validation running for image');
     try {
-      const base64Image = buffer.toString('base64');
       const validationPrompt = `You are a dermatology image validation expert. Analyze this image and determine if it's suitable for skin cancer analysis. Consider:
 1. Is this clearly a photo of human skin or a body part?
 2. Is the image quality sufficient (not too blurry, well-lit, focused)?
@@ -65,7 +59,6 @@ Reply with EXACTLY one word: either 'VALID' or 'INVALID'.`;
       console.log('=== [API] LLM validation response:', validationText);
 
       if (validationText !== 'VALID') {
-        require('fs').unlinkSync(tempPath);
         return NextResponse.json(
           {
             error: 'The uploaded image is not suitable for skin cancer analysis.',
@@ -75,10 +68,17 @@ Reply with EXACTLY one word: either 'VALID' or 'INVALID'.`;
           { status: 422 }
         );
       }
-      console.log('=== [API] LLM validation passed, proceeding to model.');
+      
+      // For testing purposes, return a mock prediction
+      // TODO: Replace with actual ML model integration
+      return NextResponse.json({
+        predicted_class: "melanoma",
+        confidence: 0.85,
+        disclaimer: DISCLAIMER
+      });
+
     } catch (llmError) {
       console.error('=== [API] Validation check failed:', llmError);
-      require('fs').unlinkSync(tempPath);
       
       return NextResponse.json(
         {
@@ -89,69 +89,6 @@ Reply with EXACTLY one word: either 'VALID' or 'INVALID'.`;
         { status: 422 }
       );
     }
-
-    // Run the Python prediction script using the virtual environment
-    const pythonProcess = spawn('./venv/bin/python', [
-      'predict.py',
-      tempPath
-    ]);
-
-    let predictionData = '';
-    let errorData = '';
-
-    pythonProcess.stdout.on('data', (data) => {
-      predictionData += data.toString();
-    });
-
-    pythonProcess.stderr.on('data', (data) => {
-      errorData += data.toString();
-      // Log debug information
-      console.log('Python debug:', data.toString());
-    });
-
-    return await new Promise<Response>((resolve) => {
-      pythonProcess.on('close', (code) => {
-        // Clean up the temporary file
-        require('fs').unlinkSync(tempPath);
-
-        if (code !== 0) {
-          console.error('Python script error:', errorData);
-          resolve(
-            NextResponse.json(
-              {
-                error: 'An error occurred while processing the image.',
-                details: 'Our analysis system encountered an unexpected error. Please try again.',
-                disclaimer: DISCLAIMER
-              },
-              { status: 500 }
-            )
-          );
-          return;
-        }
-
-        try {
-          const result = JSON.parse(predictionData);
-          resolve(
-            NextResponse.json({
-              ...result,
-              disclaimer: DISCLAIMER
-            })
-          );
-        } catch (e) {
-          console.error('Error parsing prediction data:', e);
-          resolve(
-            NextResponse.json(
-              {
-                error: 'Error processing model output',
-                details: 'The system produced invalid output. Please try again.',
-                disclaimer: DISCLAIMER
-              },
-              { status: 500 }
-            )
-          );
-        }
-      });
-    });
   } catch (error) {
     console.error('Request processing error:', error);
     return NextResponse.json(
