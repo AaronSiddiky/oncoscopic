@@ -1,7 +1,8 @@
 /app/data/
 /data/
-*.h5
-/models/
+/models/*
+!/models/skin_lesion_model.h5
+!/models/label_encoder_classes.npy
 /temp/
 /uploads/
 /node_modules/

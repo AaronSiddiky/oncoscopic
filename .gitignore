@@ -3,7 +3,7 @@
 # dependencies
 /node_modules
 /.pnp
-.pnp.js
+.pnp.*
 .yarn/*
 !.yarn/patches
 !.yarn/plugins
@@ -30,9 +30,8 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*.local
-.env
+# env files
+.env*
 
 # vercel
 .vercel
@@ -46,14 +45,17 @@ __pycache__/
 *.py[cod]
 *$py.class
 venv/
-.env
 
-# Large data directories
+# Data and model files
 /data/
+/app/data/
+*.h5
+/models/
 /temp/
 /uploads/
 
 # Keep only necessary model files
-!/models/
-/models/*
-!/models/your_production_model.h5
+!/skin_lesion_model.h5
+!/label_encoder_classes.npy
+
+NEXT_PUBLIC_API_URL=https://oncoscopic-ml-api-51c113766de3.herokuapp.com
