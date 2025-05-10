@@ -9,7 +9,7 @@ const openai = new OpenAI({
 
 const DISCLAIMER = "Note: Our system is currently trained to diagnose only 7 common types of skin cancer. While you can upload any image, including non-cancerous skin conditions, please be aware that results may not be accurate for non-diagnostic images or other types of skin conditions. Always consult with a healthcare professional for medical advice.";
 
-export async function POST(request: Request) {
+export async function POST(request: Request): Promise<Response> {
   try {
     const formData = await request.formData();
     const file = formData.get('image') as File;
@@ -109,7 +109,7 @@ Reply with EXACTLY one word: either 'VALID' or 'INVALID'.`;
       console.log('Python debug:', data.toString());
     });
 
-    return new Promise((resolve) => {
+    return await new Promise<Response>((resolve) => {
       pythonProcess.on('close', (code) => {
         // Clean up the temporary file
         require('fs').unlinkSync(tempPath);
@@ -123,7 +123,7 @@ Reply with EXACTLY one word: either 'VALID' or 'INVALID'.`;
                 details: 'Our analysis system encountered an unexpected error. Please try again.',
                 disclaimer: DISCLAIMER
               },
-            { status: 500 }
+              { status: 500 }
             )
           );
           return;
@@ -146,7 +146,7 @@ Reply with EXACTLY one word: either 'VALID' or 'INVALID'.`;
                 details: 'The system produced invalid output. Please try again.',
                 disclaimer: DISCLAIMER
               },
-            { status: 500 }
+              { status: 500 }
             )
           );
         }
