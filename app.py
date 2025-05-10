@@ -24,6 +24,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Hardcode the label encoder classes
+LABEL_ENCODER_CLASSES = np.array(['actinic keratosis', 'basal cell carcinoma', 'dermatofibroma',
+                                 'melanoma', 'nevus', 'pigmented benign keratosis',
+                                 'squamous cell carcinoma'])
+
 def create_model():
     model = tf.keras.Sequential([
         tf.keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=(28, 28, 3)),
@@ -49,12 +54,10 @@ def init_model():
         logger.info(f"Current working directory: {os.getcwd()}")
         logger.info(f"Files in current directory: {os.listdir('.')}")
         
-        # Get the absolute path to the model files
+        # Get the absolute path to the model file
         model_path = os.path.join(os.getcwd(), 'models', 'skin_lesion_model.h5')
-        le_path = os.path.join(os.getcwd(), 'models', 'label_encoder_classes.npy')
         
         logger.info(f"Loading model from: {model_path}")
-        logger.info(f"Loading label encoder from: {le_path}")
         
         # Create model with the same architecture
         model = create_model()
@@ -69,14 +72,13 @@ def init_model():
                 model.layers[i].set_weights(weights)
         
         model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-        logger.info("Model loaded and compiled successfully")
+        logger.info("Model loaded successfully")
         
-        # Load label encoder
-        logger.info("Loading label encoder...")
-        le_classes = np.load(le_path, allow_pickle=True)
+        # Initialize label encoder with hardcoded classes
+        logger.info("Initializing label encoder with hardcoded classes...")
         le = LabelEncoder()
-        le.classes_ = le_classes
-        logger.info("Label encoder loaded successfully")
+        le.classes_ = LABEL_ENCODER_CLASSES
+        logger.info("Label encoder initialized successfully")
         
         return True
     except Exception as e:
