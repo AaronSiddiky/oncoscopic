@@ -18,19 +18,28 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+def create_model():
+    model = tf.keras.Sequential([
+        tf.keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=(28, 28, 3)),
+        tf.keras.layers.MaxPooling2D((2, 2)),
+        tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
+        tf.keras.layers.MaxPooling2D((2, 2)),
+        tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
+        tf.keras.layers.Flatten(),
+        tf.keras.layers.Dense(64, activation='relu'),
+        tf.keras.layers.Dense(7, activation='softmax')
+    ])
+    return model
+
 # Load model and label encoder at startup
 print("Loading model and label encoder...")
 try:
-    # Set memory growth to avoid OOM issues
-    physical_devices = tf.config.list_physical_devices('GPU')
-    for device in physical_devices:
-        tf.config.experimental.set_memory_growth(device, True)
-except:
-    print("No GPU devices found, using CPU")
-
-try:
-    # Custom model loading with error handling
-    model = tf.keras.models.load_model('skin_lesion_model.h5', compile=False)
+    # Create model with the same architecture
+    model = create_model()
+    
+    # Load weights from the saved model
+    saved_model = tf.keras.models.load_model('skin_lesion_model.h5', compile=False)
+    model.set_weights(saved_model.get_weights())
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
     print("Model loaded successfully")
     
