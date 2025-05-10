@@ -15,7 +15,6 @@ export default function Home() {
   const [isSearching, setIsSearching] = useState(false);
   const [prediction, setPrediction] = useState<{predicted_class: string; confidence: number} | null>(null);
   const pathname = usePathname();
-  const currentLang = pathname.split('/').filter(Boolean)[0] || 'en';
 
   const handleSearch = async (searchQuery: string) => {
     try {
@@ -26,8 +25,7 @@ export default function Home() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          query: searchQuery,
-          lang: currentLang 
+          query: searchQuery
         }),
       });
       
@@ -96,10 +94,6 @@ I have a dermoscopic image that the model predicts is ${predicted_class}. Based 
     [handleSearch, setPrediction]
   );
 
-  const handleLanguageChange = useCallback((newLang: string) => {
-    // The actual language change will be handled by the useEffect
-  }, []);
-
   const handleUserSearch = useCallback((searchQuery: string) => {
     if (!searchQuery.trim()) return;
     setQuery(searchQuery);
@@ -119,7 +113,7 @@ I have a dermoscopic image that the model predicts is ${predicted_class}. Based 
         <ParticleBackground />
       </div>
       
-      <Navbar onLanguageChange={handleLanguageChange} />
+      <Navbar />
       
       <div className="z-10 space-y-8 text-center w-full max-w-6xl px-4 pt-24 pb-8">
         <TypewriterTitle 
