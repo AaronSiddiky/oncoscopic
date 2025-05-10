@@ -1,0 +1,38 @@
+{
+  "name": "oncoscopic",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@types/pdfkit": "^0.13.9",
+    "@types/uuid": "^10.0.0",
+    "framer-motion": "^12.9.4",
+    "jspdf": "^3.0.1",
+    "next": "14.1.0",
+    "openai": "^4.96.0",
+    "pdfkit": "^0.17.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-dropzone": "^14.3.8",
+    "react-tsparticles": "^2.12.2",
+    "tsparticles": "^2.12.0",
+    "tsparticles-slim": "^2.12.0",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "autoprefixer": "^10.4.17",
+    "eslint": "^8.56.0",
+    "eslint-config-next": "14.1.0",
+    "postcss": "^8.4.35",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.3.3"
+  }
+}

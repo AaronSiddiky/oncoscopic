@@ -1,0 +1,141 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-rgb: 255, 255, 255;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: rgb(var(--background-rgb));
+  font-family: -apple-system, BlinkMacSystemFont, system-ui, 'Segoe UI', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "ss01" on, "ss02" on, "cv01" on, "cv03" on;
+  line-height: 1.5;
+  height: 100%;
+  position: relative;
+  overflow-x: hidden;
+  cursor: default;
+}
+
+#tsparticles {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+}
+
+input::placeholder {
+  color: rgba(0, 0, 0, 0.5);
+  opacity: 1;
+  font-size: 17px;
+}
+
+button, a {
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.btn {
+  @apply px-4 py-2 border border-gray-300 rounded-md hover:border-gray-400;
+}
+
+/* Wave background effect - make sure it's fully visible */
+#tsparticles canvas {
+  opacity: 1 !important;
+  will-change: transform;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+}
+
+/* Ensure content has proper background for readability */
+.bg-white {
+  background-color: white;
+}
+
+/* Search box specific styles */
+.rounded-2xl {
+  border-radius: 24px;
+  border: 3px solid #000;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Override input style */
+input {
+  font-size: 17px;
+  color: #333;
+}
+
+/* Fix any mobile display issues */
+@media (max-width: 768px) {
+  input {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.backdrop-blur-md {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.backdrop-blur-sm {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.bg-gray-300\/60 {
+  background-color: rgba(209, 213, 219, 0.6);
+}
+
+.bg-gray-300\/40 {
+  background-color: rgba(209, 213, 219, 0.4);
+}
+
+.bg-gray-300\/20 {
+  background-color: rgba(209, 213, 219, 0.2);
+}
+
+.bg-gray-200\/10 {
+  background-color: rgba(229, 231, 235, 0.1);
+}
+
+.bg-white\/70 {
+  background-color: rgba(255, 255, 255, 0.7);
+}
+
+.shadow-sm {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.w-fit {
+  width: fit-content;
+}
+
+@keyframes blink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.animate-blink {
+  animation: blink 1s step-end infinite;
+}
