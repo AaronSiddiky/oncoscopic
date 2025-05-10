@@ -50,12 +50,12 @@ venv/
 /data/
 /app/data/
 *.h5
-/models/
+/models/*
 /temp/
 /uploads/
 
 # Keep only necessary model files
-!/skin_lesion_model.h5
-!/label_encoder_classes.npy
+!/models/skin_lesion_model.h5
+!/models/label_encoder_classes.npy
 
 NEXT_PUBLIC_API_URL=https://oncoscopic-ml-api-51c113766de3.herokuapp.com
