@@ -21,8 +21,19 @@ app.add_middleware(
 # Load model and label encoder at startup
 print("Loading model and label encoder...")
 try:
-    model = tf.keras.models.load_model('skin_lesion_model.h5')
+    # Set memory growth to avoid OOM issues
+    physical_devices = tf.config.list_physical_devices('GPU')
+    for device in physical_devices:
+        tf.config.experimental.set_memory_growth(device, True)
+except:
+    print("No GPU devices found, using CPU")
+
+try:
+    # Custom model loading with error handling
+    model = tf.keras.models.load_model('skin_lesion_model.h5', compile=False)
+    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
     print("Model loaded successfully")
+    
     le_classes = np.load('label_encoder_classes.npy', allow_pickle=True)
     print("Label encoder loaded successfully")
     le = LabelEncoder()
