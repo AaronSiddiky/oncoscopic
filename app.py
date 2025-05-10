@@ -54,9 +54,17 @@ def init_model():
         logger.info(f"Current working directory: {os.getcwd()}")
         logger.info(f"Files in current directory: {os.listdir('.')}")
         
+        # Initialize label encoder first
+        logger.info("Initializing label encoder with hardcoded classes...")
+        le = LabelEncoder()
+        le.classes_ = LABEL_ENCODER_CLASSES
+        if le is None or not hasattr(le, 'classes_'):
+            logger.error("Label encoder initialization failed")
+            return False
+        logger.info(f"Label encoder initialized successfully with classes: {le.classes_}")
+        
         # Get the absolute path to the model file
         model_path = os.path.join(os.getcwd(), 'models', 'skin_lesion_model.h5')
-        
         logger.info(f"Loading model from: {model_path}")
         
         # Create model with the same architecture
@@ -74,15 +82,19 @@ def init_model():
         model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
         logger.info("Model loaded successfully")
         
-        # Initialize label encoder with hardcoded classes
-        logger.info("Initializing label encoder with hardcoded classes...")
-        le = LabelEncoder()
-        le.classes_ = LABEL_ENCODER_CLASSES
-        logger.info("Label encoder initialized successfully")
-        
+        # Final verification
+        if model is None:
+            logger.error("Model initialization failed")
+            return False
+        if le is None:
+            logger.error("Label encoder initialization failed")
+            return False
+            
+        logger.info("Both model and label encoder initialized successfully")
         return True
     except Exception as e:
         logger.error(f"Error during initialization: {str(e)}")
+        logger.error(f"Traceback: {logging.traceback.format_exc()}")
         return False
 
 # Initialize model at startup
