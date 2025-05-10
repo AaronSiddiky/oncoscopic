@@ -223,57 +223,19 @@ export default function ImageUpload({
       )}
 
       {prediction && (
-          (() => {
-          const trainedDiagnoses = [
-            'bkl', // Benign keratosis-like lesions
-            'bcc', // Basal cell carcinoma
-            'akiec', // Actinic keratoses
-            'vasc', // Vascular lesions
-            'nv', // Melanocytic nevi
-            'mel', // Melanoma
-            'df' // Dermatofibroma
-          ];
-          if (!trainedDiagnoses.includes(prediction.predicted_class)) {
-            return (
-              <div className="bg-white shadow-lg rounded-lg border-2 border-black p-6 mb-8">
-                <h3 className="text-xl font-bold text-black mb-4">Analysis Results</h3>
-                <div className="space-y-3">
-                  <p className="flex items-center justify-between border-b border-gray-200 pb-2">
-                    <span className="font-medium text-gray-700">Predicted Condition:</span>
-                    <span className="font-bold text-black">Unidentifiable</span>
-                  </p>
-                  <p className="text-gray-700">
-                    The uploaded image is not within the scope of the 7 trained diagnoses. Either there is no cancer, or the image does not fall within the 7 primary types used by Oncoscopic.
-                  </p>
-                </div>
-              </div>
-            );
-          }
-          return (
-            <div className="bg-white shadow-lg rounded-lg border-2 border-black p-6 mb-8">
-              <h3 className="text-xl font-bold text-black mb-4">Analysis Results</h3>
-              <div className="space-y-3">
-                <p className="flex items-center justify-between border-b border-gray-200 pb-2">
-                  <span className="font-medium text-gray-700">Predicted Condition:</span>
-                  <span className="font-bold text-black">{prediction.predicted_class}</span>
-                </p>
-                <p className="flex items-center justify-between border-b border-gray-200 pb-2">
-                  <span className="font-medium text-gray-700">Confidence:</span>
-                  <span className="font-bold text-black">{prediction.confidence.toFixed(2)}%</span>
-                </p>
-                {llmResponse && (
-                  <button
-                    onClick={handleDownloadReport}
-                    disabled={generatingPdf}
-                    className="mt-6 bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 w-full font-medium"
-                  >
-                    {generatingPdf ? 'Generating Report...' : 'Download Report'}
-                  </button>
-                )}
-              </div>
-            </div>
-          );
-        })()
+        <div className="bg-white shadow-lg rounded-lg border-2 border-black p-6 mb-8">
+          <h3 className="text-xl font-bold text-black mb-4">Analysis Results</h3>
+          <div className="space-y-3">
+            <p className="flex items-center justify-between border-b border-gray-200 pb-2">
+              <span className="font-medium text-gray-700">Predicted Condition:</span>
+              <span className="font-bold text-black">{prediction.predicted_class}</span>
+            </p>
+            <p className="flex items-center justify-between border-b border-gray-200 pb-2">
+              <span className="font-medium text-gray-700">Confidence:</span>
+              <span className="font-bold text-black">{prediction.confidence?.toFixed(2)}%</span>
+            </p>
+          </div>
+        </div>
       )}
 
       {prediction && llmResponse && (
