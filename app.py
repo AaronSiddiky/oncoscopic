@@ -6,6 +6,7 @@ from sklearn.preprocessing import LabelEncoder
 import tensorflow as tf
 import io
 import os
+import h5py
 
 app = FastAPI()
 
@@ -37,9 +38,14 @@ try:
     # Create model with the same architecture
     model = create_model()
     
-    # Load weights from the saved model
-    saved_model = tf.keras.models.load_model('skin_lesion_model.h5', compile=False)
-    model.set_weights(saved_model.get_weights())
+    # Load weights directly from h5 file
+    with h5py.File('skin_lesion_model.h5', 'r') as f:
+        weight_names = [name for name in f.attrs['layer_names']]
+        for i, name in enumerate(weight_names):
+            g = f[name]
+            weights = [np.array(g[wname]) for wname in g.attrs['weight_names']]
+            model.layers[i].set_weights(weights)
+    
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
     print("Model loaded successfully")
     
