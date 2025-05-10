@@ -92,11 +92,21 @@ Reply with EXACTLY one word: either 'VALID' or 'INVALID'.`;
       // Call the ML API for prediction
       console.log('=== [API] Calling ML API at:', ML_API_URL);
       const mlFormData = new FormData();
-      mlFormData.append('image', file);
+      mlFormData.append('file', file, file.name);
 
       try {
+        console.log('=== [API] ML API request details:', {
+          url: `${ML_API_URL}/predict`,
+          fileName: file.name,
+          fileType: file.type,
+          fileSize: file.size
+        });
+
         const mlResponse = await fetch(`${ML_API_URL}/predict`, {
           method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+          },
           body: mlFormData,
         });
 
@@ -108,13 +118,31 @@ Reply with EXACTLY one word: either 'VALID' or 'INVALID'.`;
           throw new Error(`ML API request failed with status ${mlResponse.status}: ${responseText}`);
         }
 
-        const mlResult = JSON.parse(responseText);
-        return NextResponse.json({
-          ...mlResult,
-          disclaimer: DISCLAIMER
-        });
+        try {
+          const mlResult = JSON.parse(responseText);
+          return NextResponse.json({
+            ...mlResult,
+            disclaimer: DISCLAIMER
+          });
+        } catch (parseError) {
+          console.error('=== [API] Failed to parse ML API response:', parseError);
+          throw new Error('Invalid response from ML API');
+        }
       } catch (mlError: unknown) {
         console.error('=== [API] ML API error:', mlError);
+        
+        // Check if it's a parsing error
+        if (mlError instanceof Error && mlError.message === 'Invalid response from ML API') {
+          return NextResponse.json(
+            {
+              error: 'Invalid response from prediction service',
+              details: 'The service returned an invalid response. Please try again.',
+              disclaimer: DISCLAIMER
+            },
+            { status: 500 }
+          );
+        }
+        
         return NextResponse.json(
           {
             error: 'ML API request failed',
