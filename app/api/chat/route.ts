@@ -9,7 +9,7 @@ const languagePrompts = {
   en: "You are a skin cancer expert that will provide actionable advice for the user at home based on their skin cancer diagnoses. You will also provide information about the skin cancer and the best way to treat it at home. Respond in English.",
 };
 
-export async function POST(request: Request)    {
+export async function POST(request: Request): Promise<Response> {
   try {
     const { query, lang = 'en' } = await request.json();
     const systemPrompt = languagePrompts[lang as keyof typeof languagePrompts] || languagePrompts.en;
@@ -28,8 +28,13 @@ export async function POST(request: Request)    {
       model: "gpt-3.5-turbo",
     });
 
+    const responseContent = completion.choices[0]?.message?.content;
+    if (!responseContent) {
+      return NextResponse.json({ error: 'No response from AI' }, { status: 500 });
+    }
+
     // Remove all markdown bold (**) from the LLM response
-    const cleanedResponse = completion.choices[0].message.content.replace(/\*\*/g, '');
+    const cleanedResponse = responseContent.replace(/\*\*/g, '');
 
     return NextResponse.json({ response: cleanedResponse });
   } catch (error) {
