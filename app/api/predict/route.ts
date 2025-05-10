@@ -14,6 +14,19 @@ const DISCLAIMER = "Note: Our system is currently trained to diagnose only 7 com
 
 export async function POST(request: Request): Promise<Response> {
   try {
+    // Check if OpenAI API key is set
+    if (!process.env.OPENAI_API_KEY) {
+      console.error('=== [API] OpenAI API key is not set');
+      return NextResponse.json(
+        {
+          error: 'Configuration error',
+          details: 'OpenAI API key is not configured',
+          disclaimer: DISCLAIMER
+        },
+        { status: 500 }
+      );
+    }
+
     const formData = await request.formData();
     const file = formData.get('image') as File;
     
@@ -29,7 +42,7 @@ export async function POST(request: Request): Promise<Response> {
     const base64Image = buffer.toString('base64');
 
     // Validate image using OpenAI
-    console.log('=== [API] LLM validation running for image');
+    console.log('=== [API] Starting image validation');
     try {
       const validationPrompt = `You are a dermatology image validation expert. Analyze this image and determine if it's suitable for skin cancer analysis. Consider:
 1. Is this clearly a photo of human skin or a body part?
@@ -38,8 +51,7 @@ export async function POST(request: Request): Promise<Response> {
 
 Reply with EXACTLY one word: either 'VALID' or 'INVALID'.`;
 
-      console.log('=== [API] Attempting OpenAI validation with image size:', buffer.length);
-      
+      console.log('=== [API] Sending request to OpenAI');
       const validationResponse = await openai.chat.completions.create({
         model: "gpt-4o",
         messages: [
@@ -62,9 +74,9 @@ Reply with EXACTLY one word: either 'VALID' or 'INVALID'.`;
         max_tokens: 10,
       });
 
-      console.log('=== [API] Raw OpenAI response:', JSON.stringify(validationResponse));
+      console.log('=== [API] OpenAI response received');
       const validationText = validationResponse.choices[0]?.message?.content?.toUpperCase().trim() || '';
-      console.log('=== [API] LLM validation response:', validationText);
+      console.log('=== [API] Validation result:', validationText);
 
       if (validationText !== 'VALID') {
         return NextResponse.json(
@@ -76,8 +88,9 @@ Reply with EXACTLY one word: either 'VALID' or 'INVALID'.`;
           { status: 422 }
         );
       }
-      
+
       // Call the ML API for prediction
+      console.log('=== [API] Calling ML API at:', ML_API_URL);
       const mlFormData = new FormData();
       mlFormData.append('image', file);
 
@@ -87,23 +100,33 @@ Reply with EXACTLY one word: either 'VALID' or 'INVALID'.`;
       });
 
       if (!mlResponse.ok) {
-        throw new Error('ML API request failed');
+        throw new Error(`ML API request failed with status ${mlResponse.status}`);
       }
 
       const mlResult = await mlResponse.json();
-      
       return NextResponse.json({
         ...mlResult,
         disclaimer: DISCLAIMER
       });
 
     } catch (error: unknown) {
-      const llmError = error as Error & { response?: { data: any } };
-      console.error('=== [API] Validation check failed - Full error:', llmError);
-      console.error('=== [API] Error name:', llmError.name);
-      console.error('=== [API] Error message:', llmError.message);
-      if (llmError.response) {
-        console.error('=== [API] OpenAI response:', llmError.response.data);
+      const err = error as Error;
+      console.error('=== [API] Error details:', {
+        name: err.name,
+        message: err.message,
+        stack: err.stack
+      });
+      
+      // Check for specific OpenAI errors
+      if (err.message?.includes('API key')) {
+        return NextResponse.json(
+          {
+            error: 'OpenAI API configuration error',
+            details: 'There was an issue with the API key configuration.',
+            disclaimer: DISCLAIMER
+          },
+          { status: 500 }
+        );
       }
       
       return NextResponse.json(
