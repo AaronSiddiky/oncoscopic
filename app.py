@@ -20,10 +20,18 @@ app.add_middleware(
 
 # Load model and label encoder at startup
 print("Loading model and label encoder...")
-model = tf.keras.models.load_model('skin_lesion_model.h5')
-le_classes = np.load('label_encoder_classes.npy', allow_pickle=True)
-le = LabelEncoder()
-le.classes_ = le_classes
+try:
+    model = tf.keras.models.load_model('skin_lesion_model.h5')
+    print("Model loaded successfully")
+    le_classes = np.load('label_encoder_classes.npy', allow_pickle=True)
+    print("Label encoder loaded successfully")
+    le = LabelEncoder()
+    le.classes_ = le_classes
+except Exception as e:
+    print(f"Error loading model or label encoder: {str(e)}")
+    print(f"Current working directory: {os.getcwd()}")
+    print(f"Files in current directory: {os.listdir('.')}")
+    raise e
 
 @app.get("/")
 async def root():
