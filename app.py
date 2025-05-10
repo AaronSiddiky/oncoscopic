@@ -7,6 +7,11 @@ import tensorflow as tf
 import io
 import os
 import h5py
+import logging
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
@@ -32,39 +37,69 @@ def create_model():
     ])
     return model
 
-# Load model and label encoder at startup
-print("Loading model and label encoder...")
-try:
-    # Create model with the same architecture
-    model = create_model()
+# Global variables for model and label encoder
+model = None
+le = None
+
+def init_model():
+    global model, le
     
-    # Load weights directly from h5 file
-    with h5py.File('skin_lesion_model.h5', 'r') as f:
-        weight_names = [name for name in f.attrs['layer_names']]
-        for i, name in enumerate(weight_names):
-            g = f[name]
-            weights = [np.array(g[wname]) for wname in g.attrs['weight_names']]
-            model.layers[i].set_weights(weights)
-    
-    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-    print("Model loaded successfully")
-    
-    le_classes = np.load('label_encoder_classes.npy', allow_pickle=True)
-    print("Label encoder loaded successfully")
-    le = LabelEncoder()
-    le.classes_ = le_classes
-except Exception as e:
-    print(f"Error loading model or label encoder: {str(e)}")
-    print(f"Current working directory: {os.getcwd()}")
-    print(f"Files in current directory: {os.listdir('.')}")
-    raise e
+    try:
+        logger.info("Starting model initialization...")
+        logger.info(f"Current working directory: {os.getcwd()}")
+        logger.info(f"Files in current directory: {os.listdir('.')}")
+        
+        # Get the absolute path to the model files
+        model_path = os.path.join(os.getcwd(), 'skin_lesion_model.h5')
+        le_path = os.path.join(os.getcwd(), 'label_encoder_classes.npy')
+        
+        logger.info(f"Loading model from: {model_path}")
+        logger.info(f"Loading label encoder from: {le_path}")
+        
+        # Create model with the same architecture
+        model = create_model()
+        
+        # Load weights directly from h5 file
+        logger.info("Loading model weights...")
+        with h5py.File(model_path, 'r') as f:
+            weight_names = [name.decode('utf8') for name in f.attrs['layer_names']]
+            for i, name in enumerate(weight_names):
+                g = f[name]
+                weights = [np.array(g[wname]) for wname in g.attrs['weight_names']]
+                model.layers[i].set_weights(weights)
+        
+        model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+        logger.info("Model loaded and compiled successfully")
+        
+        # Load label encoder
+        logger.info("Loading label encoder...")
+        le_classes = np.load(le_path, allow_pickle=True)
+        le = LabelEncoder()
+        le.classes_ = le_classes
+        logger.info("Label encoder loaded successfully")
+        
+        return True
+    except Exception as e:
+        logger.error(f"Error during initialization: {str(e)}")
+        return False
+
+# Initialize model at startup
+if not init_model():
+    logger.error("Failed to initialize model. Application may not work correctly.")
 
 @app.get("/")
 async def root():
-    return {"message": "Oncoscopic ML API is running"}
+    return {
+        "message": "Oncoscopic ML API is running",
+        "model_loaded": model is not None,
+        "label_encoder_loaded": le is not None
+    }
 
 @app.post("/predict")
 async def predict_image(file: UploadFile = File(...)):
+    if model is None or le is None:
+        return {"error": "Model or label encoder not initialized properly"}
+        
     try:
         # Read image file
         contents = await file.read()
@@ -92,8 +127,8 @@ async def predict_image(file: UploadFile = File(...)):
         }
         
     except Exception as e:
-        import traceback
+        logger.error(f"Error during prediction: {str(e)}")
         return {
             'error': str(e),
-            'traceback': traceback.format_exc()
+            'traceback': logging.traceback.format_exc()
         } 
