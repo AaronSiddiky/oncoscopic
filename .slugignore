@@ -1,0 +1,13 @@
+/app/data/
+/data/
+*.h5
+/models/
+/temp/
+/uploads/
+/node_modules/
+/.next/
+*.jpg
+*.png
+*.gif
+/public/images/
+train_skin_cancer_cnn.py 
