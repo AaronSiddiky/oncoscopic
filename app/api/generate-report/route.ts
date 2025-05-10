@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 // @ts-ignore
 import PDFDocument from 'pdfkit/js/pdfkit.standalone.js';
 
-export async function POST(request: Request) {
+export async function POST(request: Request): Promise<Response> {
   try {
     const { predictedClass, confidence, llmResponse, imageUrl } = await request.json();
     
@@ -15,7 +15,7 @@ export async function POST(request: Request) {
       );
     }
 
-    return new Promise((resolve, reject) => {
+    return await new Promise<Response>((resolve, reject) => {
       try {
         // Create a PDF document with Courier font (built into standalone version)
         const doc = new PDFDocument({
@@ -39,14 +39,14 @@ export async function POST(request: Request) {
             chunks.push(chunk);
           } catch (error) {
             console.error('Error collecting PDF chunk:', error);
-            reject(error);
+            reject(new NextResponse(JSON.stringify({ error: 'Failed to collect PDF chunk' }), { status: 500 }));
           }
         });
         
         // Add error handler for PDF generation
         doc.on('error', (err: Error) => {
           console.error('PDFDocument error:', err);
-          reject(err);
+          reject(new NextResponse(JSON.stringify({ error: 'PDF generation error' }), { status: 500 }));
         });
 
         // Handle end of document
@@ -69,7 +69,7 @@ export async function POST(request: Request) {
             resolve(response);
           } catch (error) {
             console.error('Error in end event handler:', error);
-            reject(error);
+            reject(new NextResponse(JSON.stringify({ error: 'Failed to create PDF response' }), { status: 500 }));
           }
         });
 
@@ -136,14 +136,8 @@ export async function POST(request: Request) {
         doc.end();
       } catch (error) {
         console.error('Error in PDF generation:', error);
-        reject(error);
+        reject(new NextResponse(JSON.stringify({ error: 'Failed to generate PDF' }), { status: 500 }));
       }
-    }).catch(error => {
-      console.error('Promise rejection in PDF generation:', error);
-      return NextResponse.json(
-        { error: 'Failed to generate PDF report', details: error instanceof Error ? error.message : String(error) },
-        { status: 500 }
-      );
     });
   } catch (error) {
     console.error('Error in report generation:', error);
