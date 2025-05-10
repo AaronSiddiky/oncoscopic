@@ -94,21 +94,36 @@ Reply with EXACTLY one word: either 'VALID' or 'INVALID'.`;
       const mlFormData = new FormData();
       mlFormData.append('image', file);
 
-      const mlResponse = await fetch(`${ML_API_URL}/predict`, {
-        method: 'POST',
-        body: mlFormData,
-      });
+      try {
+        const mlResponse = await fetch(`${ML_API_URL}/predict`, {
+          method: 'POST',
+          body: mlFormData,
+        });
 
-      if (!mlResponse.ok) {
-        throw new Error(`ML API request failed with status ${mlResponse.status}`);
+        console.log('=== [API] ML API response status:', mlResponse.status);
+        const responseText = await mlResponse.text();
+        console.log('=== [API] ML API response text:', responseText);
+
+        if (!mlResponse.ok) {
+          throw new Error(`ML API request failed with status ${mlResponse.status}: ${responseText}`);
+        }
+
+        const mlResult = JSON.parse(responseText);
+        return NextResponse.json({
+          ...mlResult,
+          disclaimer: DISCLAIMER
+        });
+      } catch (mlError: unknown) {
+        console.error('=== [API] ML API error:', mlError);
+        return NextResponse.json(
+          {
+            error: 'ML API request failed',
+            details: 'The prediction service is temporarily unavailable. Please try again in a few moments.',
+            disclaimer: DISCLAIMER
+          },
+          { status: 422 }
+        );
       }
-
-      const mlResult = await mlResponse.json();
-      return NextResponse.json({
-        ...mlResult,
-        disclaimer: DISCLAIMER
-      });
-
     } catch (error: unknown) {
       const err = error as Error;
       console.error('=== [API] Error details:', {
