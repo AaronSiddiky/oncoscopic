@@ -5,6 +5,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+const ML_API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://oncoscopic-ml-api-51c113766de3.herokuapp.com';
 const DISCLAIMER = "Note: Our system is currently trained to diagnose only 7 common types of skin cancer. While you can upload any image, including non-cancerous skin conditions, please be aware that results may not be accurate for non-diagnostic images or other types of skin conditions. Always consult with a healthcare professional for medical advice.";
 
 export async function POST(request: Request): Promise<Response> {
@@ -69,11 +70,23 @@ Reply with EXACTLY one word: either 'VALID' or 'INVALID'.`;
         );
       }
       
-      // For testing purposes, return a mock prediction
-      // TODO: Replace with actual ML model integration
+      // Call the ML API for prediction
+      const mlFormData = new FormData();
+      mlFormData.append('image', file);
+
+      const mlResponse = await fetch(`${ML_API_URL}/predict`, {
+        method: 'POST',
+        body: mlFormData,
+      });
+
+      if (!mlResponse.ok) {
+        throw new Error('ML API request failed');
+      }
+
+      const mlResult = await mlResponse.json();
+      
       return NextResponse.json({
-        predicted_class: "melanoma",
-        confidence: 0.85,
+        ...mlResult,
         disclaimer: DISCLAIMER
       });
 
