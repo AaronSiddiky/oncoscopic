@@ -240,6 +240,13 @@ export default function ImageUpload({
 
       {prediction && llmResponse && (
         <>
+          <button
+            onClick={handleDownloadReport}
+            disabled={generatingPdf}
+            className="mb-6 bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 w-full font-medium"
+          >
+            {generatingPdf ? 'Generating Report...' : 'Download Report'}
+          </button>
           <form onSubmit={handleSearchSubmit} className="relative mb-8">
             <input
               type="text"
