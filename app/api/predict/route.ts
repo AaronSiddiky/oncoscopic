@@ -34,6 +34,8 @@ export async function POST(request: Request): Promise<Response> {
 
 Reply with EXACTLY one word: either 'VALID' or 'INVALID'.`;
 
+      console.log('=== [API] Attempting OpenAI validation with image size:', buffer.length);
+      
       const validationResponse = await openai.chat.completions.create({
         model: "gpt-4o",
         messages: [
@@ -56,6 +58,7 @@ Reply with EXACTLY one word: either 'VALID' or 'INVALID'.`;
         max_tokens: 10,
       });
 
+      console.log('=== [API] Raw OpenAI response:', JSON.stringify(validationResponse));
       const validationText = validationResponse.choices[0]?.message?.content?.toUpperCase().trim() || '';
       console.log('=== [API] LLM validation response:', validationText);
 
@@ -90,8 +93,14 @@ Reply with EXACTLY one word: either 'VALID' or 'INVALID'.`;
         disclaimer: DISCLAIMER
       });
 
-    } catch (llmError) {
-      console.error('=== [API] Validation check failed:', llmError);
+    } catch (error: unknown) {
+      const llmError = error as Error & { response?: { data: any } };
+      console.error('=== [API] Validation check failed - Full error:', llmError);
+      console.error('=== [API] Error name:', llmError.name);
+      console.error('=== [API] Error message:', llmError.message);
+      if (llmError.response) {
+        console.error('=== [API] OpenAI response:', llmError.response.data);
+      }
       
       return NextResponse.json(
         {
